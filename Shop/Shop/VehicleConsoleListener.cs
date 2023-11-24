@@ -10,17 +10,17 @@ namespace Shop
     {
         public void EntityAdded(Vehicle entity)
         {
-            Console.WriteLine($"Vehicle added: {entity.Name}, Id: {entity.Id}");
+            Console.WriteLine($"Транспорт доданий: {entity.Name}");
         }
 
         public void EntityDeleted(int entityId)
         {
-            Console.WriteLine($"Vehicle deleted, Id: {entityId}");
+            Console.WriteLine($"Транспорт видалений");
         }
 
         public void EntityUpdated(Vehicle updatedEntity)
         {
-            Console.WriteLine($"Vehicle updated: {updatedEntity.Name}, Id: {updatedEntity.Id}");
+            Console.WriteLine($"Транспорт оновлений: {updatedEntity.Name}");
         }
     }
 }

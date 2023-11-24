@@ -142,6 +142,7 @@ namespace Shop
             if (rowsAffected > 0)
             {
                 NotifyEntityDeleted(id);
+                Console.WriteLine("\n Транспорт був успішно видалений.\n");
             }
             else
             {
@@ -168,10 +169,11 @@ namespace Shop
             if (rowsAffected > 0)
             {
                 NotifyEntityAdded(vehicle);
+                Console.WriteLine("\n Транспорт був успішно доданий.\n");
             }
             else
             {
-                Console.WriteLine("\n Транспорт не был добавлен.\n");
+                Console.WriteLine("\n Транспорт не був доданий.\n");
             }
         }
 
@@ -195,6 +197,7 @@ namespace Shop
             if (rowsAffected > 0)
             {
                 NotifyEntityUpdated(vehicle);
+                Console.WriteLine("\n Транспорт був успішно оновлений.\n");
             }
             else
             {

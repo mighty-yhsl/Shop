@@ -18,7 +18,10 @@ class Program
 
         DAOFactory factory = DAOFactory.GetInstance();
         IDAO<Vehicle> vehicleDao = factory.CreateDAO<Vehicle>();
+        VehicleDAO vehicleDaoConcrete = (VehicleDAO)vehicleDao; 
+
         List<Vehicle> allVehicles = vehicleDao.GetAll();
+        vehicleDaoConcrete.AddListener(new VehicleConsoleListener());
 
         IDAO<Supplier> supplierDao = factory.CreateDAO<Supplier>();
         List<Supplier> allSuppliers = supplierDao.GetAll();

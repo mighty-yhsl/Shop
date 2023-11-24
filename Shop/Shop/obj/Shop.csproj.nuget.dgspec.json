@@ -11,7 +11,7 @@
         "projectName": "Shop",
         "projectPath": "C:\\Users\\Dasha\\source\\repos\\Shop\\Shop\\Shop\\Shop.csproj",
         "packagesPath": "C:\\Users\\Dasha\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Dasha\\Source\\Repos\\Shop\\Shop\\Shop\\obj\\",
+        "outputPath": "C:\\Users\\Dasha\\source\\repos\\Shop\\Shop\\Shop\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

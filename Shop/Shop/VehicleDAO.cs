@@ -17,6 +17,7 @@ namespace Shop
     {
         private readonly string connectionString;
         private MySqlConnection connection;
+        private List<IDAOListener<Vehicle>> listeners = new List<IDAOListener<Vehicle>>();
 
         private const string GET_ALL_QUERY = "SELECT * FROM vehicles";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM vehicles WHERE Name = @Name";
@@ -24,6 +25,34 @@ namespace Shop
         private const string UPDATE_QUERY = "UPDATE vehicles SET Name = @Name, Price = @Price, Power = @Power, Speed = @Speed, Weight = @Weight, Manufacturer_id = @Manufacturer_id, Supplier_id = @Supplier_id WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO vehicles (Name, Price, Power, Speed, Weight, Manufacturer_id, Supplier_id) VALUES (@Name, @Price, @Power, @Speed, @Weight, @Manufacturer_id, @Supplier_id)";
 
+        public void AddListener(IDAOListener<Vehicle> listener)
+        {
+            listeners.Add(listener);
+        }
+
+        private void NotifyEntityAdded(Vehicle entity)
+        {
+            foreach (var listener in listeners)
+            {
+                listener.EntityAdded(entity);
+            }
+        }
+
+        private void NotifyEntityDeleted(int entityId)
+        {
+            foreach (var listener in listeners)
+            {
+                listener.EntityDeleted(entityId);
+            }
+        }
+
+        private void NotifyEntityUpdated(Vehicle updatedEntity)
+        {
+            foreach (var listener in listeners)
+            {
+                listener.EntityUpdated(updatedEntity);
+            }
+        }
 
         public VehicleDAO(string connectionString)
         {
@@ -112,7 +141,7 @@ namespace Shop
 
             if (rowsAffected > 0)
             {
-                Console.WriteLine($"\n Транспорт з Id {id} був успішно видалений.\n");
+                NotifyEntityDeleted(id);
             }
             else
             {
@@ -138,7 +167,7 @@ namespace Shop
 
             if (rowsAffected > 0)
             {
-                Console.WriteLine("\n Транспорт был успешно добавлен.\n");
+                NotifyEntityAdded(vehicle);
             }
             else
             {
@@ -165,7 +194,7 @@ namespace Shop
 
             if (rowsAffected > 0)
             {
-                Console.WriteLine($"\n Транспорт з Id {vehicle.Id} був успішно оновлений.\n");
+                NotifyEntityUpdated(vehicle);
             }
             else
             {

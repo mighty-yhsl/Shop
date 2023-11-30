@@ -18,16 +18,20 @@ class Program
 
         DAOFactory factory = DAOFactory.GetInstance();
         IDAO<Vehicle> vehicleDao = factory.CreateDAO<Vehicle>();
-        VehicleDAO vehicleDaoConcrete = (VehicleDAO)vehicleDao; 
-
         List<Vehicle> allVehicles = vehicleDao.GetAll();
-        vehicleDaoConcrete.AddListener(new VehicleConsoleListener());
 
         IDAO<Supplier> supplierDao = factory.CreateDAO<Supplier>();
         List<Supplier> allSuppliers = supplierDao.GetAll();
 
         IDAO<Manufacturer> manufacturerDao = factory.CreateDAO<Manufacturer>();
         List<Manufacturer> allManufacturers = manufacturerDao.GetAll();
+
+        IObserver observer = new Observer();
+        if (vehicleDao is IDAOObservable observableDao)
+        {
+            observableDao.AddObserver(observer);
+
+        }
 
         do 
         {
@@ -52,12 +56,11 @@ class Program
                             switch (choiceVariantFirst)
                             {
                                 case 1:
-                                    Console.WriteLine("\n Всі товари :\n");
                                     foreach (var vehicle in allVehicles)
                                         Console.WriteLine(JsonSerializer.Serialize(vehicle));
                                     break;
                                 case 2:
-                                    Console.WriteLine("\n Всі назви писати на англійській\n");
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть назву товару:\n");
                                     string name = Console.ReadLine();
 
@@ -91,7 +94,7 @@ class Program
                                         .SetManufacturerId(manufacturer)
                                         .SetSupplierId(supplier)
                                         .Build();
-
+                                    
                                     vehicleDao.Add(newVehicle);                            
                                     break;
                                 case 3:
@@ -112,12 +115,11 @@ class Program
                                         Shop.Vehicle existingVehicle = allVehicles.FirstOrDefault(vehicle => vehicle.Id == updateId);
                                         if (existingVehicle != null)
                                         {
-                                            Console.WriteLine("\n Всі назви писати на англійській\n");
                                             Console.WriteLine("\n Поточні дані для транспорту:\n");
                                             Console.WriteLine(JsonSerializer.Serialize(existingVehicle));
 
                                             Console.WriteLine("\n Введіть нові дані для транспорту:\n");
-
+                                            Console.WriteLine("\n Всі назви писати англійською :\n");
                                             Console.WriteLine("\n Нова назва товару:\n");
                                             string newName = Console.ReadLine();
                                             if (!string.IsNullOrEmpty(newName))
@@ -162,8 +164,6 @@ class Program
                                             }
 
                                             vehicleDao.Update(existingVehicle);
-
-                                            Console.WriteLine("\n Транспорт був оновлений.\n");
                                         }
                                         else
                                         {
@@ -176,7 +176,7 @@ class Program
                                     }
                                     break;
                                 case 5:
-                                    Console.WriteLine("\n Всі назви писати на англійській\n");
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть назву товару для пошуку: \n");
                                     string searchName = Console.ReadLine();
                                     Vehicle foundVehicle = vehicleDao.GetByName(searchName);
@@ -210,13 +210,11 @@ class Program
                             switch (choiceVariantSecond)
                             {
                                 case 1:
-                                    Console.WriteLine("\n Всі постачальники :\n");
                                     foreach (var supplier in allSuppliers)
                                         Console.WriteLine(JsonSerializer.Serialize(supplier));
                                     break;
                                 case 2:
-                                    Console.WriteLine("\n Всі назви писати на англійській\n");
-
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть ім'я постачальника:\n");
                                     string firstName = Console.ReadLine();
 
@@ -262,7 +260,7 @@ class Program
                                             Console.WriteLine(JsonSerializer.Serialize(existingSupplier));
 
                                             Console.WriteLine("\n Введіть нові дані для постачальника:\n");
-
+                                            Console.WriteLine("\n Всі назви писати англійською :\n");
                                             Console.WriteLine("\n Нове ім'я постачальника:\n");
                                             string newFirstName = Console.ReadLine();
                                             if (!string.IsNullOrEmpty(newFirstName))
@@ -293,7 +291,6 @@ class Program
 
                                             supplierDao.Update(existingSupplier);
 
-                                            Console.WriteLine("\n Постачальник був оновлений.\n");
                                         }
                                         else
                                         {
@@ -306,7 +303,7 @@ class Program
                                     }
                                     break;
                                 case 5:
-                                    Console.WriteLine("\n Ім'я писати англійською\n");
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть Ім'я постачальника для пошуку: \n");
                                     string searchName = Console.ReadLine();
                                     Supplier foundSupplier = supplierDao.GetByName(searchName);
@@ -336,13 +333,11 @@ class Program
                             switch (choiceVariantThird)
                             {
                                 case 1:
-                                    Console.WriteLine("\n Всі виробники :\n");
                                     foreach (var manufacturer in allManufacturers)
                                         Console.WriteLine(JsonSerializer.Serialize(manufacturer));
                                     break;
                                 case 2:
-                                    Console.WriteLine("\n Всі назви писати на англійській\n");
-
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть ім'я виробника:\n");
                                     string Name = Console.ReadLine();
 
@@ -374,7 +369,7 @@ class Program
                                             Console.WriteLine(JsonSerializer.Serialize(existingManufacturer));
 
                                             Console.WriteLine("\n Введіть нові дані для виробника:\n");
-
+                                            Console.WriteLine("\n Всі назви писати англійською :\n");
                                             Console.WriteLine("\n Нова назва виробника:\n");
                                             string newManufacturerName = Console.ReadLine();
                                             if (!string.IsNullOrEmpty(newManufacturerName))
@@ -384,7 +379,6 @@ class Program
 
                                             manufacturerDao.Update(existingManufacturer);
 
-                                            Console.WriteLine("\n Виробник був оновлений.\n");
                                         }
                                         else
                                         {
@@ -397,14 +391,13 @@ class Program
                                     }
                                     break;
                                 case 5:
-                                    Console.WriteLine("\n Ім'я писати англійською\n");
+                                    Console.WriteLine("\n Всі назви писати англійською :\n");
                                     Console.WriteLine("\n Введіть Ім'я виробника для пошуку: \n");
                                     string searchName = Console.ReadLine();
                                     Manufacturer foundManufacturer = manufacturerDao.GetByName(searchName);
 
                                     if (foundManufacturer != null)
                                     {
-                                        Console.WriteLine("\n Знайдено виробника: \n");
                                         Console.WriteLine(JsonSerializer.Serialize(foundManufacturer));
                                     }
                                     else

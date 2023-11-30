@@ -10,48 +10,48 @@ namespace Shop
 {
     public class DAOFactory
     {
-        private static DAOFactory instance;
-        private string connectionString;
-        private MySqlConnection connection;
+        private static DAOFactory _instance;
+        private string _connectionString;
+        private MySqlConnection _connection;
 
         private DAOFactory(string connectionString)
         {
-            this.connectionString = connectionString;
+            _connectionString = connectionString;
         }
 
         private DAOFactory()
         {
             string connectionString = "server=localhost;port=3306;username=root;password=secret;database=shop";
-            connection = new MySqlConnection(connectionString);
+            _connection = new MySqlConnection(connectionString);
         }
 
         public static DAOFactory GetInstance()
         {
-            if (instance == null)
+            if (_instance == null)
             {
-                instance = new DAOFactory();
+                _instance = new DAOFactory();
             }
-            return instance;
+            return _instance;
         }
 
         public MySqlConnection GetConnection()
         {
-            return connection;
+            return _connection;
         }
 
         public IDAO<T> CreateDAO<T>()
         {
             if (typeof(T) == typeof(Vehicle))
             {
-                return new VehicleDAO(connectionString) as IDAO<T>;
+                return new VehicleDAO(_connectionString) as IDAO<T>;
             }
             else if (typeof(T) == typeof(Supplier))
             {
-                return new SupplierDAO(connectionString) as IDAO<T>;
+                return new SupplierDAO(_connectionString) as IDAO<T>;
             }
             else if (typeof(T) == typeof(Manufacturer))
             {
-                return new ManufacturerDAO(connectionString) as IDAO<T>;
+                return new ManufacturerDAO(_connectionString) as IDAO<T>;
             }
             else
             {

@@ -12,12 +12,10 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Shop
 {
-
-    public class VehicleDAO : IDAO<Vehicle>
+    public class VehicleDAO : IDAO<Vehicle>, IDAOObservable
     {
-        private readonly string connectionString;
-        private MySqlConnection connection;
-        private List<IDAOListener<Vehicle>> listeners = new List<IDAOListener<Vehicle>>();
+        private MySqlConnection _connection;
+        private List<IObserver> _observers;
 
         private const string GET_ALL_QUERY = "SELECT * FROM vehicles";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM vehicles WHERE Name = @Name";
@@ -25,180 +23,228 @@ namespace Shop
         private const string UPDATE_QUERY = "UPDATE vehicles SET Name = @Name, Price = @Price, Power = @Power, Speed = @Speed, Weight = @Weight, Manufacturer_id = @Manufacturer_id, Supplier_id = @Supplier_id WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO vehicles (Name, Price, Power, Speed, Weight, Manufacturer_id, Supplier_id) VALUES (@Name, @Price, @Power, @Speed, @Weight, @Manufacturer_id, @Supplier_id)";
 
-        public void AddListener(IDAOListener<Vehicle> listener)
-        {
-            listeners.Add(listener);
-        }
-
-        private void NotifyEntityAdded(Vehicle entity)
-        {
-            foreach (var listener in listeners)
-            {
-                listener.EntityAdded(entity);
-            }
-        }
-
-        private void NotifyEntityDeleted(int entityId)
-        {
-            foreach (var listener in listeners)
-            {
-                listener.EntityDeleted(entityId);
-            }
-        }
-
-        private void NotifyEntityUpdated(Vehicle updatedEntity)
-        {
-            foreach (var listener in listeners)
-            {
-                listener.EntityUpdated(updatedEntity);
-            }
-        }
-
         public VehicleDAO(string connectionString)
         {
-            connection = DAOFactory.GetInstance().GetConnection();
+            _connection = DAOFactory.GetInstance().GetConnection();
+            _observers = new List<IObserver>();
+        }
+
+        public void AddObserver(IObserver observer)
+        {
+            _observers.Add(observer);
+        }
+
+        public void RemoveObserver(IObserver observer)
+        {
+            _observers.Remove(observer);
+        }
+
+        public void Notify(string message)
+        {
+            foreach (var observer in _observers)
+            {
+                observer.Update(message);
+            }
         }
 
         public List<Vehicle> GetAll()
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, connection);
-            MySqlDataReader reader = command.ExecuteReader();
-            List<Vehicle> vehicles = new List<Vehicle>();
-            while (reader.Read())
+            try
             {
-                int id = reader.GetInt32(0);
-                string name = reader.GetString(1);
-                float price = reader.GetFloat(2);
-                int power = reader.GetInt32(3);
-                int speed = reader.GetInt32(4);
-                int weight = reader.GetInt32(5);
-                int manufacturer_id = reader.GetInt32(6);
-                int supplier_id = reader.GetInt32(7);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, _connection);
+                MySqlDataReader reader = command.ExecuteReader();
+                List<Vehicle> vehicles = new List<Vehicle>();
 
-                Shop.Vehicle vehicle = new Shop.Vehicle.VehicleBuilder()
-                    .SetId(id)
-                    .SetName(name)
-                    .SetPrice(price)
-                    .SetPower(power)
-                    .SetSpeed(speed)
-                    .SetWeight(weight)
-                    .SetManufacturerId(manufacturer_id) 
-                    .SetSupplierId(supplier_id)
-                    .Build();
+                while (reader.Read())
+                {
+                    int id = reader.GetInt32(0);
+                    string name = reader.GetString(1);
+                    float price = reader.GetFloat(2);
+                    int power = reader.GetInt32(3);
+                    int speed = reader.GetInt32(4);
+                    int weight = reader.GetInt32(5);
+                    int manufacturer_id = reader.GetInt32(6);
+                    int supplier_id = reader.GetInt32(7);
 
-                vehicles.Add(vehicle);
+                    Shop.Vehicle vehicle = new Shop.Vehicle.VehicleBuilder()
+                        .SetId(id)
+                        .SetName(name)
+                        .SetPrice(price)
+                        .SetPower(power)
+                        .SetSpeed(speed)
+                        .SetWeight(weight)
+                        .SetManufacturerId(manufacturer_id)
+                        .SetSupplierId(supplier_id)
+                        .Build();
+
+                    vehicles.Add(vehicle);
+                }
+
+                Notify("\n Всі транспортні засоби: \n");
+                return vehicles;
             }
-            reader.Close();
-            connection.Close();
-            return vehicles;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні транспортних засобів: {ex.Message}");
+                throw new InvalidOperationException($"\n Неможливо виконати операцію отримання транспортних засобів." +
+                    $" Будь ласка, перевірте стан системи та спробуйте знову.");
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         public Vehicle GetByName(string name)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, connection);
-            command.Parameters.AddWithValue("@Name", name);
-
-            MySqlDataReader reader = command.ExecuteReader();
-            Vehicle vehicle = null;
-
-            if (reader.Read())
+            try
             {
-                int id = reader.GetInt32(0);
-                float price = reader.GetFloat(2);
-                int power = reader.GetInt32(3);
-                int speed = reader.GetInt32(4);
-                int weight = reader.GetInt32(5);
-                int manufacturer_id = reader.GetInt32(6);
-                int supplier_id = reader.GetInt32(7);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, _connection);
+                command.Parameters.AddWithValue("@Name", name);
 
-                vehicle = new Vehicle.VehicleBuilder()
-                    .SetId(id)
-                    .SetName(name)
-                    .SetPrice(price)
-                    .SetPower(power)
-                    .SetSpeed(speed)
-                    .SetWeight(weight)
-                    .SetManufacturerId(manufacturer_id)
-                    .SetSupplierId(supplier_id)
-                    .Build();
+                MySqlDataReader reader = command.ExecuteReader();
+                Vehicle vehicle = null;
+
+                if (reader.Read())
+                {
+                    int id = reader.GetInt32(0);
+                    float price = reader.GetFloat(2);
+                    int power = reader.GetInt32(3);
+                    int speed = reader.GetInt32(4);
+                    int weight = reader.GetInt32(5);
+                    int manufacturer_id = reader.GetInt32(6);
+                    int supplier_id = reader.GetInt32(7);
+
+                    vehicle = new Vehicle.VehicleBuilder()
+                        .SetId(id)
+                        .SetName(name)
+                        .SetPrice(price)
+                        .SetPower(power)
+                        .SetSpeed(speed)
+                        .SetWeight(weight)
+                        .SetManufacturerId(manufacturer_id)
+                        .SetSupplierId(supplier_id)
+                        .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений транспортний засіб з ім'ям {name}: \n");
+                return vehicle;
             }
-            reader.Close();
-            connection.Close();
-            return vehicle;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні транспортного засобу за ім'ям {name}: {ex.Message}");
+                throw new InvalidOperationException($"\n Транспортний засіб з ім'ям '{name}' не знайдений.");
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         public void Delete(int id)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, connection);
-            command.Parameters.AddWithValue("@Id", id);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                NotifyEntityDeleted(id);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Транспорт з Id {id} був видалений \n");
+                }
+                else
+                {
+                    Console.WriteLine($"\n Транспорт з Id {id} не був знайдений або не був видалений.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"\n Транспорт з Id {id} не був знайдений або не був видалений.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при видаленні транспорту з Id {id}: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
-
+        
         public void Add(Vehicle vehicle)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(INSERT_QUERY, connection);
-            command.Parameters.AddWithValue("@Name", vehicle.Name);
-            command.Parameters.AddWithValue("@Price", vehicle.Price);
-            command.Parameters.AddWithValue("@Power", vehicle.Power);
-            command.Parameters.AddWithValue("@Speed", vehicle.Speed);
-            command.Parameters.AddWithValue("@Weight", vehicle.Weight);
-            command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
-            command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                NotifyEntityAdded(vehicle);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(INSERT_QUERY, _connection);
+                command.Parameters.AddWithValue("@Name", vehicle.Name);
+                command.Parameters.AddWithValue("@Price", vehicle.Price);
+                command.Parameters.AddWithValue("@Power", vehicle.Power);
+                command.Parameters.AddWithValue("@Speed", vehicle.Speed);
+                command.Parameters.AddWithValue("@Weight", vehicle.Weight);
+                command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
+                command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Транспорт з ім'ям {vehicle.Name} був доданий \n");
+                }
+                else
+                {
+                    Console.WriteLine("\n Транспорт не був доданий.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("\n Транспорт не був доданий.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при додаванні транспорту: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
 
         public void Update(Vehicle vehicle)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(UPDATE_QUERY, connection);
-            command.Parameters.AddWithValue("@Id", vehicle.Id);
-            command.Parameters.AddWithValue("@Name", vehicle.Name);
-            command.Parameters.AddWithValue("@Price", vehicle.Price);
-            command.Parameters.AddWithValue("@Power", vehicle.Power);
-            command.Parameters.AddWithValue("@Speed", vehicle.Speed);
-            command.Parameters.AddWithValue("@Weight", vehicle.Weight);
-            command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
-            command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                NotifyEntityUpdated(vehicle);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(UPDATE_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", vehicle.Id);
+                command.Parameters.AddWithValue("@Name", vehicle.Name);
+                command.Parameters.AddWithValue("@Price", vehicle.Price);
+                command.Parameters.AddWithValue("@Power", vehicle.Power);
+                command.Parameters.AddWithValue("@Speed", vehicle.Speed);
+                command.Parameters.AddWithValue("@Weight", vehicle.Weight);
+                command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
+                command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Транспорт з Id {vehicle.Id} був оновлений");
+                }
+                else
+                {
+                    Console.WriteLine($"\n Транспорт з Id {vehicle.Id} не був знайдений або не був оновлений.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"\n Транспорт з Id {vehicle.Id} не був знайдений або не був оновлений.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при оновленні транспорту: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
     }

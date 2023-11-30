@@ -9,8 +9,8 @@ namespace Shop
 {
     public  class ManufacturerDAO : IDAO<Manufacturer>
     {
-        private readonly string connectionString;
-        private MySqlConnection connection;
+        private MySqlConnection _connection;
+        private List<IObserver> _observers;
 
         private const string GET_ALL_QUERY = "SELECT * FROM manufacturer";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM manufacturer WHERE Name = @Name";
@@ -18,118 +18,196 @@ namespace Shop
         private const string UPDATE_QUERY = "UPDATE manufacturer SET Name = @Name WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO manufacturer (Name) VALUES (@Name)";
 
-
         public ManufacturerDAO(string connectionString)
         {
-            connection = DAOFactory.GetInstance().GetConnection();
+            _connection = DAOFactory.GetInstance().GetConnection();
+            _observers = new List<IObserver>();
+        }
+
+        public void AddObserver(IObserver observer)
+        {
+            _observers.Add(observer);
+        }
+
+        public void RemoveObserver(IObserver observer)
+        {
+            _observers.Remove(observer);
+        }
+
+        public void Notify(string message)
+        {
+            foreach (var observer in _observers)
+            {
+                observer.Update(message);
+            }
         }
 
         public List<Manufacturer> GetAll()
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, connection);
-            MySqlDataReader reader = command.ExecuteReader();
-            List<Manufacturer> manufacturers = new List<Manufacturer>();
-
-            while (reader.Read())
+            try
             {
-                int id = reader.GetInt32(0);
-                string Name = reader.GetString(1);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, _connection);
+                MySqlDataReader reader = command.ExecuteReader();
+                List<Manufacturer> manufacturers = new List<Manufacturer>();
 
-                Manufacturer manufacturer = new Manufacturer.ManufacturerBuilder()
-                    .SetId(id)
-                    .SetName(Name)
-                    .Build();
+                while (reader.Read())
+                {
+                    int id = reader.GetInt32(0);
+                    string name = reader.GetString(1);
 
-                manufacturers.Add(manufacturer);
+                    Manufacturer manufacturer = new Manufacturer.ManufacturerBuilder()
+                        .SetId(id)
+                        .SetName(name)
+                        .Build();
+
+                    manufacturers.Add(manufacturer);
+                }
+                reader.Close();
+                Notify("\n Всі виробники: \n");
+                return manufacturers;
             }
-            reader.Close();
-            connection.Close();
-            return manufacturers;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні виробників: {ex.Message}");
+                throw new InvalidOperationException($"\n Неможливо виконати операцію отримання виробників. Будь ласка," +
+                    $" перевірте стан системи та спробуйте знову.");
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         public Manufacturer GetByName(string Name)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, connection);
-            command.Parameters.AddWithValue("@Name", Name);
-
-            MySqlDataReader reader = command.ExecuteReader();
-            Manufacturer manufacturer = null;
-
-            if (reader.Read())
+            try
             {
-                int id = reader.GetInt32(0);
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, _connection);
+                command.Parameters.AddWithValue("@Name", Name);
 
-                manufacturer = new Manufacturer.ManufacturerBuilder()
-                    .SetId(id)
-                    .SetName(Name)
-                    .Build();
+                MySqlDataReader reader = command.ExecuteReader();
+                Manufacturer manufacturer = null;
+
+                if (reader.Read())
+                {
+                    int id = reader.GetInt32(0);
+
+                    manufacturer = new Manufacturer.ManufacturerBuilder()
+                        .SetId(id)
+                        .SetName(Name)
+                        .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений виробник з ім'ям {Name}: \n");
+                return manufacturer;
             }
-            reader.Close();
-            connection.Close();
-            return manufacturer;
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні виробника за ім'ям {Name}: {ex.Message}");
+                throw new InvalidOperationException($"\n Неможливо виконати операцію отримання виробника за ім'ям. " +
+                    $"Будь ласка, перевірте стан системи та спробуйте знову.");
+            }
+            finally
+            {
+                _connection.Close();
+            }
         }
 
         public void Delete(int id)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, connection);
-            command.Parameters.AddWithValue("@Id", id);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                Console.WriteLine($"\n Виробник з Id {id} був успішно видалений.\n");
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Виробник з Id {id} був успішно видалений.\n");
+                }
+                else
+                {
+                    Console.WriteLine($"\n Виробник з Id {id} не був знайдений або не був видалений.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"\n Виробник з Id {id} не був знайдений або не був видалений.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при видаленні виробника з Id {id}: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
 
         public void Add(Manufacturer manufacturer)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(INSERT_QUERY, connection);
-            command.Parameters.AddWithValue("@Id", manufacturer.Id);
-            command.Parameters.AddWithValue("@Name", manufacturer.Name);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                Console.WriteLine("\n Виробник був успішно доданий.\n");
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(INSERT_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", manufacturer.Id);
+                command.Parameters.AddWithValue("@Name", manufacturer.Name);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                _connection.Close();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Виробник з ім'ям {manufacturer.Name} був успішно доданий.\n");
+                }
+                else
+                {
+                    Console.WriteLine($"\n Виробник з ім'ям {manufacturer.Name} не був доданий.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine("\n Виробник не був доданий.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при додаванні виробника з ім'ям {manufacturer.Name}: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
 
         public void Update(Manufacturer manufacturer)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(UPDATE_QUERY, connection);
-            command.Parameters.AddWithValue("@Id", manufacturer.Id);
-            command.Parameters.AddWithValue("@Name", manufacturer.Name);
-
-            int rowsAffected = command.ExecuteNonQuery();
-
-            connection.Close();
-
-            if (rowsAffected > 0)
+            try
             {
-                Console.WriteLine($"\n Виробник з Id {manufacturer.Id} був успішно оновлений.\n");
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(UPDATE_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", manufacturer.Id);
+                command.Parameters.AddWithValue("@Name", manufacturer.Name);
+
+                int rowsAffected = command.ExecuteNonQuery();
+
+                if (rowsAffected > 0)
+                {
+                    Notify($"\n Виробник з Id {manufacturer.Id} був успішно оновлений.\n");
+                }
+                else
+                {
+                    Console.WriteLine($"\n Виробник з Id {manufacturer.Id} не був знайдений або не був оновлений.\n");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"\n Виробник з Id {manufacturer.Id} не був знайдений або не був оновлений.\n");
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при оновленні виробника: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
             }
         }
     }

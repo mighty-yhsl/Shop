@@ -9,8 +9,8 @@ namespace Shop
 {
     public class SupplierDAO : IDAO<Supplier>
     {
-        private readonly string connectionString;
-        private MySqlConnection connection;
+        private readonly string _connectionString;
+        private MySqlConnection _connection;
 
         private const string GET_ALL_QUERY = "SELECT * FROM supplier";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM supplier WHERE FirstName = @FirstName";
@@ -21,13 +21,13 @@ namespace Shop
 
         public SupplierDAO(string connectionString)
         {
-            connection = DAOFactory.GetInstance().GetConnection();
+            _connection = DAOFactory.GetInstance().GetConnection();
         }
 
         public List<Supplier> GetAll()
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, connection);
+            _connection.Open();
+            MySqlCommand command = new MySqlCommand(GET_ALL_QUERY, _connection);
             MySqlDataReader reader = command.ExecuteReader();
             List<Supplier> suppliers = new List<Supplier>();
 
@@ -50,14 +50,14 @@ namespace Shop
                 suppliers.Add(supplier);
             }
             reader.Close();
-            connection.Close();
+            _connection.Close();
             return suppliers;
         }
 
         public Supplier GetByName(string firstName)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, connection);
+            _connection.Open();
+            MySqlCommand command = new MySqlCommand(GET_BY_NAME_QUERY, _connection);
             command.Parameters.AddWithValue("@FirstName", firstName);
 
             MySqlDataReader reader = command.ExecuteReader();
@@ -79,19 +79,19 @@ namespace Shop
                     .Build();
             }
             reader.Close();
-            connection.Close();
+            _connection.Close();
             return supplier;
         }
 
         public void Delete(int id)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, connection);
+            _connection.Open();
+            MySqlCommand command = new MySqlCommand(DELETE_BY_ID_QUERY, _connection);
             command.Parameters.AddWithValue("@Id", id);
 
             int rowsAffected = command.ExecuteNonQuery();
 
-            connection.Close();
+            _connection.Close();
 
             if (rowsAffected > 0)
             {
@@ -105,8 +105,8 @@ namespace Shop
 
         public void Add(Supplier supplier)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(INSERT_QUERY, connection);
+            _connection.Open();
+            MySqlCommand command = new MySqlCommand(INSERT_QUERY, _connection);
             command.Parameters.AddWithValue("@FirstName", supplier.FirstName);
             command.Parameters.AddWithValue("@LastName", supplier.LastName);
             command.Parameters.AddWithValue("@Email", supplier.Email);
@@ -114,7 +114,7 @@ namespace Shop
 
             int rowsAffected = command.ExecuteNonQuery();
 
-            connection.Close();
+            _connection.Close();
 
             if (rowsAffected > 0)
             {
@@ -128,8 +128,8 @@ namespace Shop
 
         public void Update(Supplier supplier)
         {
-            connection.Open();
-            MySqlCommand command = new MySqlCommand(UPDATE_QUERY, connection);
+            _connection.Open();
+            MySqlCommand command = new MySqlCommand(UPDATE_QUERY, _connection);
             command.Parameters.AddWithValue("@Id", supplier.Id);
             command.Parameters.AddWithValue("@FirstName", supplier.FirstName);
             command.Parameters.AddWithValue("@LastName", supplier.LastName);
@@ -138,7 +138,7 @@ namespace Shop
 
             int rowsAffected = command.ExecuteNonQuery();
 
-            connection.Close();
+            _connection.Close();
 
             if (rowsAffected > 0)
             {

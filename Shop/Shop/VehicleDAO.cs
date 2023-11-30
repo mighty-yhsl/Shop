@@ -80,7 +80,7 @@ namespace Shop
 
                     vehicles.Add(vehicle);
                 }
-
+                reader.Close();
                 Notify("\n Всі транспортні засоби: \n");
                 return vehicles;
             }
@@ -130,14 +130,14 @@ namespace Shop
                         .Build();
                 }
                 reader.Close();
-                Notify($"\n Знайдений транспортний засіб з ім'ям {name}: \n");
+                Notify($"\n Знайдений транспортний засіб з назвою {name}: \n");
                 return vehicle;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                Notify($"\n Помилка при отриманні транспортного засобу за ім'ям {name}: {ex.Message}");
-                throw new InvalidOperationException($"\n Транспортний засіб з ім'ям '{name}' не знайдений.");
+                Notify($"\n Помилка при отриманні транспортного засобу за назвою {name}: {ex.Message}");
+                throw new InvalidOperationException($"\n Транспортний засіб з назвою '{name}' не знайдений.");
             }
             finally
             {
@@ -193,7 +193,7 @@ namespace Shop
 
                 if (rowsAffected > 0)
                 {
-                    Notify($"\n Транспорт з ім'ям {vehicle.Name} був доданий \n");
+                    Notify($"\n Транспорт з назвою {vehicle.Name} був доданий \n");
                 }
                 else
                 {

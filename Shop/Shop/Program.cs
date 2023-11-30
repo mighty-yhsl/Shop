@@ -6,6 +6,14 @@ using System.Text.Json;
 
 class Program
 {
+    static void AttachObserverToDao<T>(IDAO<T> dao, IObserver observer)
+    {
+        if (dao != null && dao is IDAOObservable observableDao)
+        {
+            observableDao.AddObserver(observer);
+        }
+    }
+
     static void Main(string[] args)
     {
         int choiceTable = 0;
@@ -16,22 +24,20 @@ class Program
         Console.InputEncoding = Encoding.Unicode;
         Console.OutputEncoding = Encoding.Unicode;
 
+        IObserver observer = new Observer();
         DAOFactory factory = DAOFactory.GetInstance();
+
         IDAO<Vehicle> vehicleDao = factory.CreateDAO<Vehicle>();
         List<Vehicle> allVehicles = vehicleDao.GetAll();
+        AttachObserverToDao(vehicleDao, observer);
 
         IDAO<Supplier> supplierDao = factory.CreateDAO<Supplier>();
         List<Supplier> allSuppliers = supplierDao.GetAll();
+        AttachObserverToDao(supplierDao, observer);
 
         IDAO<Manufacturer> manufacturerDao = factory.CreateDAO<Manufacturer>();
         List<Manufacturer> allManufacturers = manufacturerDao.GetAll();
-
-        IObserver observer = new Observer();
-        if (vehicleDao is IDAOObservable observableDao)
-        {
-            observableDao.AddObserver(observer);
-
-        }
+        AttachObserverToDao(manufacturerDao, observer);
 
         do 
         {
@@ -183,7 +189,6 @@ class Program
 
                                     if (foundVehicle != null)
                                     {
-                                        Console.WriteLine("\n Знайдено товар: \n");
                                         Console.WriteLine(JsonSerializer.Serialize(foundVehicle));
                                     }
                                     else
@@ -310,7 +315,6 @@ class Program
 
                                     if (foundSupplier != null)
                                     {
-                                        Console.WriteLine("\n Знайдено постачальника: \n");
                                         Console.WriteLine(JsonSerializer.Serialize(foundSupplier));
                                     }
                                     else

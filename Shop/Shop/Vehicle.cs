@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Google.Protobuf.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -104,5 +105,33 @@ namespace Shop
              }
 
          }
-     }
+
+        public Memento Save()
+        {
+            Memento memento = new Memento(Name, Price, Power, Speed, Weight, Manufacturer_id, Supplier_id);
+            Console.WriteLine($"Стан транспортного засобу збережено. Параметри: Ім'я - {Name}, Ціна - {Price}, Потужність - {Power}," +
+                $"Швидкість - {Speed}, Вага - {Weight}, Ідентифікатор виробника - {Manufacturer_id}, Ідентифікатор постачальника - {Supplier_id}");
+            return memento;
+        }
+
+        public void Restore(Memento memento)
+        {
+            if (memento != null)
+            {
+                Name = memento.Name;
+                Price = memento.Price;
+                Power = memento.Power;
+                Speed = memento.Speed;
+                Weight = memento.Weight;
+                Manufacturer_id = memento.ManufacturerId;
+                Supplier_id = memento.SupplierId;
+
+                Console.WriteLine("Стан транспортного засобу відновлено.");
+            }
+            else
+            {
+                Console.WriteLine("Помилка: Немає збереженого стану транспортного засобу.");
+            }
+        }
+    }
 }

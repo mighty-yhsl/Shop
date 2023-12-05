@@ -16,6 +16,7 @@ namespace Shop
     {
         private MySqlConnection _connection;
         private List<IObserver> _observers;
+        private Caretaker _caretaker;
 
         private const string GET_ALL_QUERY = "SELECT * FROM vehicles";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM vehicles WHERE Name = @Name";
@@ -27,6 +28,12 @@ namespace Shop
         {
             _connection = DAOFactory.GetInstance().GetConnection();
             _observers = new List<IObserver>();
+            _caretaker = new Caretaker();
+        }
+
+        public Caretaker GetCaretaker()
+        {
+            return _caretaker;
         }
 
         public void AddObserver(IObserver observer)
@@ -216,6 +223,7 @@ namespace Shop
             try
             {
                 _connection.Open();
+                _caretaker.AddChange(vehicle.Save());
                 MySqlCommand command = new MySqlCommand(UPDATE_QUERY, _connection);
                 command.Parameters.AddWithValue("@Id", vehicle.Id);
                 command.Parameters.AddWithValue("@Name", vehicle.Name);
@@ -225,6 +233,8 @@ namespace Shop
                 command.Parameters.AddWithValue("@Weight", vehicle.Weight);
                 command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
                 command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
+
+                _caretaker.AddChange(vehicle.Save());
 
                 int rowsAffected = command.ExecuteNonQuery();
 

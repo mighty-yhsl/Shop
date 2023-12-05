@@ -55,7 +55,7 @@ class Program
                         return;
                     case 1:
                         Console.WriteLine("\n Переглянути всі товари - 1 \n Додати товар - 2 \n Видалити товар за Id - 3 " +
-                            "\n Редагувати товар - 4 \n Пошук за назвою - 5");
+                            "\n Редагувати товар - 4 \n Пошук за назвою - 5 \n Скасування останнього оновлення - 6");
                         Console.WriteLine("-------------------------------------------------------------------------");
                         if (int.TryParse(Console.ReadLine(), out choiceVariantFirst))
                         {
@@ -194,6 +194,23 @@ class Program
                                     else
                                     {
                                         Console.WriteLine($"\nТовар з назвою '{searchName}' не знайдено.");
+                                    }
+                                    break;
+                                case 6:
+                                    if (vehicleDao is VehicleDAO vehicleDaoWithCaretaker)
+                                    {
+                                        var caretaker = vehicleDaoWithCaretaker.GetCaretaker();
+
+                                        foreach (var vehicle in allVehicles)
+                                        {
+                                            caretaker.Undo(vehicle);
+                                        }
+
+                                        Console.WriteLine("Останнє оновлення скасовано.");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Caretaker не підтримується цим DAO.");
                                     }
                                     break;
                                 default:

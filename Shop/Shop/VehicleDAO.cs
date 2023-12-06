@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using static Shop.Vehicle;
 using System.Data.Common;
 using System.Security.Cryptography.X509Certificates;
+using System.Numerics;
 
 namespace Shop
 {
@@ -16,10 +17,10 @@ namespace Shop
     {
         private MySqlConnection _connection;
         private List<IObserver> _observers;
-        private Caretaker _caretaker;
 
         private const string GET_ALL_QUERY = "SELECT * FROM vehicles";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM vehicles WHERE Name = @Name";
+        private const string GET_BY_ID_QUERY = "SELECT * FROM vehicles WHERE Id = @Id";
         private const string DELETE_BY_ID_QUERY = "DELETE FROM vehicles WHERE Id = @Id";
         private const string UPDATE_QUERY = "UPDATE vehicles SET Name = @Name, Price = @Price, Power = @Power, Speed = @Speed, Weight = @Weight, Manufacturer_id = @Manufacturer_id, Supplier_id = @Supplier_id WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO vehicles (Name, Price, Power, Speed, Weight, Manufacturer_id, Supplier_id) VALUES (@Name, @Price, @Power, @Speed, @Weight, @Manufacturer_id, @Supplier_id)";
@@ -28,12 +29,6 @@ namespace Shop
         {
             _connection = DAOFactory.GetInstance().GetConnection();
             _observers = new List<IObserver>();
-            _caretaker = new Caretaker();
-        }
-
-        public Caretaker GetCaretaker()
-        {
-            return _caretaker;
         }
 
         public void AddObserver(IObserver observer)
@@ -152,6 +147,54 @@ namespace Shop
             }
         }
 
+        public Vehicle GetById(int id)
+        {
+            try
+            {
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                MySqlDataReader reader = command.ExecuteReader();
+                Vehicle vehicle = null;
+
+                if (reader.Read())
+                {
+                    string name = reader.GetString(1);
+                    float price = reader.GetFloat(2);
+                    int power = reader.GetInt32(3);
+                    int speed = reader.GetInt32(4);
+                    int weight = reader.GetInt32(5);
+                    int manufacturer_id = reader.GetInt32(6);
+                    int supplier_id = reader.GetInt32(7);
+
+                    vehicle = new Vehicle.VehicleBuilder()
+                        .SetId(id)
+                        .SetName(name)
+                        .SetPrice(price)
+                        .SetPower(power)
+                        .SetSpeed(speed)
+                        .SetWeight(weight)
+                        .SetManufacturerId(manufacturer_id)
+                        .SetSupplierId(supplier_id)
+                        .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений транспортний засіб з Id {id}: \n");
+                return vehicle;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні транспортного засобу за Id  {id}: {ex.Message}");
+                throw new InvalidOperationException($"\n Транспортний засіб за Id '{id}' не знайдений.");
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
         public void Delete(int id)
         {
             try
@@ -222,8 +265,8 @@ namespace Shop
         {
             try
             {
+               
                 _connection.Open();
-                _caretaker.AddChange(vehicle.Save());
                 MySqlCommand command = new MySqlCommand(UPDATE_QUERY, _connection);
                 command.Parameters.AddWithValue("@Id", vehicle.Id);
                 command.Parameters.AddWithValue("@Name", vehicle.Name);
@@ -233,8 +276,6 @@ namespace Shop
                 command.Parameters.AddWithValue("@Weight", vehicle.Weight);
                 command.Parameters.AddWithValue("@Manufacturer_id", vehicle.Manufacturer_id);
                 command.Parameters.AddWithValue("@Supplier_id", vehicle.Supplier_id);
-
-                _caretaker.AddChange(vehicle.Save());
 
                 int rowsAffected = command.ExecuteNonQuery();
 

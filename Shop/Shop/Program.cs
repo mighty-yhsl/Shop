@@ -25,6 +25,7 @@ class Program
         Console.OutputEncoding = Encoding.Unicode;
 
         IObserver observer = new Observer();
+        Caretaker caretaker = new Caretaker();
         DAOFactory factory = DAOFactory.GetInstance();
 
         IDAO<Vehicle> vehicleDao = factory.CreateDAO<Vehicle>();
@@ -121,6 +122,9 @@ class Program
                                         Shop.Vehicle existingVehicle = allVehicles.FirstOrDefault(vehicle => vehicle.Id == updateId);
                                         if (existingVehicle != null)
                                         {
+                                            Vehicle beforeUpdateVehicle = vehicleDao.GetById(updateId);
+                                            caretaker.AddChange(beforeUpdateVehicle.Save());
+
                                             Console.WriteLine("\n Поточні дані для транспорту:\n");
                                             Console.WriteLine(JsonSerializer.Serialize(existingVehicle));
 
@@ -197,20 +201,18 @@ class Program
                                     }
                                     break;
                                 case 6:
-                                    if (vehicleDao is VehicleDAO vehicleDaoWithCaretaker)
+                                    if (caretaker._changes.Count >= 1)
                                     {
-                                        var caretaker = vehicleDaoWithCaretaker.GetCaretaker();
-
-                                        foreach (var vehicle in allVehicles)
-                                        {
-                                            caretaker.Undo(vehicle);
-                                        }
-
-                                        Console.WriteLine("Останнє оновлення скасовано.");
+                                        Memento memento = caretaker.GetChange();
+                                        Vehicle vehicleRestored = new Vehicle();
+                                        vehicleRestored.Restore(memento);
+                                        vehicleDao.Update(vehicleRestored);
+                                        Console.WriteLine("Дія транспортного засобу скасована.");
+                                        Console.WriteLine($"Відновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Caretaker не підтримується цим DAO.");
+                                        Console.WriteLine("Помилка: Немає змінених станів для відміни.");
                                     }
                                     break;
                                 default:

@@ -15,6 +15,7 @@ namespace Shop
 
         private const string GET_ALL_QUERY = "SELECT * FROM supplier";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM supplier WHERE FirstName = @FirstName";
+        private const string GET_BY_ID_QUERY = "SELECT * FROM supplier WHERE Id = @Id";
         private const string DELETE_BY_ID_QUERY = "DELETE FROM supplier WHERE Id = @Id";
         private const string UPDATE_QUERY = "UPDATE supplier SET FirstName = @FirstName, LastName = @LastName, Email = @Email, Phone = @Phone WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO supplier (FirstName, LastName, Email, Phone) VALUES (@FirstName, @LastName, @Email, @Phone)";
@@ -226,6 +227,48 @@ namespace Shop
             {
                 Console.WriteLine(ex.ToString());
                 Notify($"\n Помилка при оновленні постачальника: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
+        public Supplier GetById(int id)
+        {
+            try
+            {
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                MySqlDataReader reader = command.ExecuteReader();
+                Supplier supplier = null;
+
+                if (reader.Read())
+                {
+                    string firstName = reader.GetString(1);
+                    string lastName = reader.GetString(2);
+                    string email = reader.GetString(3);
+                    string phone = reader.GetString(4);
+
+                    supplier = new Supplier.SupplierBuilder()
+                        .SetId(id)
+                        .SetFirstName(firstName)
+                        .SetLastName(lastName)
+                        .SetEmail(email)
+                        .SetPhone(phone)
+                        .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений постачальник з Id {id}: \n");
+                return supplier;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні постачальника з Id {id}: {ex.Message}");
+                throw new InvalidOperationException($"\n Постачальник з Id '{id}' не знайдений.");
             }
             finally
             {

@@ -8,6 +8,7 @@ namespace Shop
 {
     public class Memento
     {
+        public int Id { get; }
         public string Name { get; }
         public float Price { get; }
         public int? Power { get; }
@@ -16,8 +17,9 @@ namespace Shop
         public int ManufacturerId { get; }
         public int SupplierId { get; }
 
-        public Memento(string name, float price, int? power, int? speed, int? weight, int manufacturerId, int supplierId)
+        public Memento(int id, string name, float price, int? power, int? speed, int? weight, int manufacturerId, int supplierId)
         {
+            this.Id = id;
             this.Name = name;
             this.Price = price;
             this.Power = power;

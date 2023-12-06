@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace Shop
 {
@@ -14,6 +15,7 @@ namespace Shop
 
         private const string GET_ALL_QUERY = "SELECT * FROM manufacturer";
         private const string GET_BY_NAME_QUERY = "SELECT * FROM manufacturer WHERE Name = @Name";
+        private const string GET_BY_ID_QUERY = "SELECT * FROM manufacturer WHERE Id = @Id";
         private const string DELETE_BY_ID_QUERY = "DELETE FROM manufacturer WHERE Id = @Id";
         private const string UPDATE_QUERY = "UPDATE manufacturer SET Name = @Name WHERE Id = @Id";
         private const string INSERT_QUERY = "INSERT INTO manufacturer (Name) VALUES (@Name)";
@@ -204,6 +206,43 @@ namespace Shop
             {
                 Console.WriteLine(ex.ToString());
                 Notify($"\n Помилка при оновленні виробника: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
+        public Manufacturer GetById(int id)
+        {
+            try
+            {
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                MySqlDataReader reader = command.ExecuteReader();
+                Manufacturer manufacturer = null;
+
+                if (reader.Read())
+                {
+                    string name = reader.GetString(1);
+
+                    manufacturer = new Manufacturer.ManufacturerBuilder()
+                    .SetId(id)
+                    .SetName(name)
+                    .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений виробник з Id {id}: \n");
+                return manufacturer;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні виробника за Id {id}: {ex.Message}");
+                throw new InvalidOperationException($"\n Неможливо виконати операцію отримання виробника за Id. " +
+                    $"Будь ласка, перевірте стан системи та спробуйте знову.");
             }
             finally
             {

@@ -147,54 +147,6 @@ namespace Shop
             }
         }
 
-        public Vehicle GetById(int id)
-        {
-            try
-            {
-                _connection.Open();
-                MySqlCommand command = new MySqlCommand(GET_BY_ID_QUERY, _connection);
-                command.Parameters.AddWithValue("@Id", id);
-
-                MySqlDataReader reader = command.ExecuteReader();
-                Vehicle vehicle = null;
-
-                if (reader.Read())
-                {
-                    string name = reader.GetString(1);
-                    float price = reader.GetFloat(2);
-                    int power = reader.GetInt32(3);
-                    int speed = reader.GetInt32(4);
-                    int weight = reader.GetInt32(5);
-                    int manufacturer_id = reader.GetInt32(6);
-                    int supplier_id = reader.GetInt32(7);
-
-                    vehicle = new Vehicle.VehicleBuilder()
-                        .SetId(id)
-                        .SetName(name)
-                        .SetPrice(price)
-                        .SetPower(power)
-                        .SetSpeed(speed)
-                        .SetWeight(weight)
-                        .SetManufacturerId(manufacturer_id)
-                        .SetSupplierId(supplier_id)
-                        .Build();
-                }
-                reader.Close();
-                Notify($"\n Знайдений транспортний засіб з Id {id}: \n");
-                return vehicle;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-                Notify($"\n Помилка при отриманні транспортного засобу за Id  {id}: {ex.Message}");
-                throw new InvalidOperationException($"\n Транспортний засіб за Id '{id}' не знайдений.");
-            }
-            finally
-            {
-                _connection.Close();
-            }
-        }
-
         public void Delete(int id)
         {
             try
@@ -292,6 +244,54 @@ namespace Shop
             {
                 Console.WriteLine(ex.ToString());
                 Notify($"\n Помилка при оновленні транспорту: {ex.Message}");
+            }
+            finally
+            {
+                _connection.Close();
+            }
+        }
+
+        public Vehicle GetById(int id)
+        {
+            try
+            {
+                _connection.Open();
+                MySqlCommand command = new MySqlCommand(GET_BY_ID_QUERY, _connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                MySqlDataReader reader = command.ExecuteReader();
+                Vehicle vehicle = null;
+
+                if (reader.Read())
+                {
+                    string name = reader.GetString(1);
+                    float price = reader.GetFloat(2);
+                    int power = reader.GetInt32(3);
+                    int speed = reader.GetInt32(4);
+                    int weight = reader.GetInt32(5);
+                    int manufacturer_id = reader.GetInt32(6);
+                    int supplier_id = reader.GetInt32(7);
+
+                    vehicle = new Vehicle.VehicleBuilder()
+                        .SetId(id)
+                        .SetName(name)
+                        .SetPrice(price)
+                        .SetPower(power)
+                        .SetSpeed(speed)
+                        .SetWeight(weight)
+                        .SetManufacturerId(manufacturer_id)
+                        .SetSupplierId(supplier_id)
+                        .Build();
+                }
+                reader.Close();
+                Notify($"\n Знайдений транспортний засіб з Id {id}: \n");
+                return vehicle;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                Notify($"\n Помилка при отриманні транспортного засобу за Id  {id}: {ex.Message}");
+                throw new InvalidOperationException($"\n Транспортний засіб за Id '{id}' не знайдений.");
             }
             finally
             {

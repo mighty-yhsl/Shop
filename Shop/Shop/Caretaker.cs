@@ -14,7 +14,7 @@ namespace Shop
         public void AddChange(Memento change)
         {
             _changes.Push(change);
-            Console.WriteLine("Зміни до стану транспортного засобу збережено." + _changes.Count);
+            Console.WriteLine("\n Зміни до стану транспортного засобу збережено.\n");
         }
 
         public Memento GetChange() 

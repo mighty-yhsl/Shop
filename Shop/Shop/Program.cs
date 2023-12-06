@@ -197,7 +197,7 @@ class Program
                                     }
                                     else
                                     {
-                                        Console.WriteLine($"\nТовар з назвою '{searchName}' не знайдено.");
+                                        Console.WriteLine($"\nТовар з назвою '{searchName}' не знайдено.\n");
                                     }
                                     break;
                                 case 6:
@@ -207,22 +207,22 @@ class Program
                                         Vehicle vehicleRestored = new Vehicle();
                                         vehicleRestored.Restore(memento);
                                         vehicleDao.Update(vehicleRestored);
-                                        Console.WriteLine("Дія транспортного засобу скасована.");
-                                        Console.WriteLine($"Відновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
+                                        Console.WriteLine("\nДія транспортного засобу скасована.\n");
+                                        Console.WriteLine($"\nВідновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Помилка: Немає змінених станів для відміни.");
+                                        Console.WriteLine("\nПомилка: Немає змінених станів для відміни.\n");
                                     }
                                     break;
                                 default:
-                                    Console.WriteLine("\n Невірний вибір.");
+                                    Console.WriteLine("\n Невірний вибір.\n");
                                     break;
                             }
                         }
                         else
                         {
-                            Console.WriteLine("\n Невірний число. Введіть число від 1 до 3.");
+                            Console.WriteLine("\n Невірний число. Введіть число від 1 до 3.\n");
                         }
                         break;
                     case 2:
@@ -388,6 +388,9 @@ class Program
                                         Shop.Manufacturer existingManufacturer = allManufacturers.FirstOrDefault(manufacturer => manufacturer.Id == updateId);
                                         if (existingManufacturer != null)
                                         {
+                                            Vehicle beforeUpdateVehicle = vehicleDao.GetById(updateId);
+                                            caretaker.AddChange(beforeUpdateVehicle.Save());
+
                                             Console.WriteLine("\n Поточні дані для виробника:\n");
                                             Console.WriteLine(JsonSerializer.Serialize(existingManufacturer));
 
@@ -426,6 +429,21 @@ class Program
                                     else
                                     {
                                         Console.WriteLine($"\n Виробник з Ім'ям '{searchName}' не знайдено.");
+                                    }
+                                    break;
+                                case 6:
+                                    if (caretaker._changes.Count >= 1)
+                                    {
+                                        Memento memento = caretaker.GetChange();
+                                        Vehicle vehicleRestored = new Vehicle();
+                                        vehicleRestored.Restore(memento);
+                                        vehicleDao.Update(vehicleRestored);
+                                        Console.WriteLine("Дія транспортного засобу скасована.");
+                                        Console.WriteLine($"Відновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Помилка: Немає змінених станів для відміни.");
                                     }
                                     break;
                                 default:

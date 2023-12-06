@@ -109,7 +109,7 @@ namespace Shop
         public Memento Save()
         {
             Memento memento = new Memento(Id, Name, Price, Power, Speed, Weight, Manufacturer_id, Supplier_id);
-            Console.WriteLine($"Стан транспортного засобу збережено.");
+            Console.WriteLine($"\nСтан транспортного засобу збережено.\n");
             return memento;
         }
 
@@ -126,11 +126,11 @@ namespace Shop
                 Manufacturer_id = memento.ManufacturerId;
                 Supplier_id = memento.SupplierId;
 
-                Console.WriteLine("Стан транспортного засобу відновлено.");
+                Console.WriteLine("\nСтан транспортного засобу відновлено.\n");
             }
             else
             {
-                Console.WriteLine("Помилка: Немає збереженого стану транспортного засобу.");
+                Console.WriteLine("\nПомилка: Немає збереженого стану транспортного засобу.\n");
             }
         }
         

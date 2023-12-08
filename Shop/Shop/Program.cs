@@ -438,12 +438,12 @@ class Program
                                         Vehicle vehicleRestored = new Vehicle();
                                         vehicleRestored.Restore(memento);
                                         vehicleDao.Update(vehicleRestored);
-                                        Console.WriteLine("Дія транспортного засобу скасована.");
-                                        Console.WriteLine($"Відновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
+                                        Console.WriteLine("\nДія транспортного засобу скасована.\n");
+                                        Console.WriteLine($"\nВідновлений стан: Id={vehicleRestored.Id}, Name={vehicleRestored.Name}, ...");
                                     }
                                     else
                                     {
-                                        Console.WriteLine("Помилка: Немає змінених станів для відміни.");
+                                        Console.WriteLine("\nПомилка: Немає змінених станів для відміни.\n");
                                     }
                                     break;
                                 default:

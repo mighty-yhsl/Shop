@@ -47,7 +47,7 @@ namespace Shop
             }
             else if (typeof(T) == typeof(Supplier))
             {
-                return new SupplierDAO(_connectionString) as IDAO<T>;
+                return new ProxySupplierDAO(_connectionString, SupplierType.SECONDARY) as IDAO<T>;
             }
             else if (typeof(T) == typeof(Manufacturer))
             {

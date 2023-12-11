@@ -149,7 +149,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Постачальник з Id {id} не був знайдений або не був видалений.\n");
+                    Notify($"\n Постачальник з Id {id} не був знайдений або не був видалений.\n");
                 }
             }
             catch (Exception ex)
@@ -184,7 +184,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Постачальник з ім'ям {supplier.FirstName} не був доданий.\n");
+                    Notify($"\n Постачальник з ім'ям {supplier.FirstName} не був доданий.\n");
                 }
             }
             catch (Exception ex)
@@ -220,7 +220,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Постачальник з Id {supplier.Id} не був знайдений або не був оновлений.\n");
+                    Notify($"\n Постачальник з Id {supplier.Id} не був знайдений або не був оновлений.\n");
                 }
             }
             catch (Exception ex)
@@ -274,6 +274,11 @@ namespace Shop
             {
                 _connection.Close();
             }
+        }
+
+        public Supplier GetByLogin(string login)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,11 +48,19 @@ namespace Shop
             }
             else if (typeof(T) == typeof(Supplier))
             {
-                return new ProxySupplierDAO(_connectionString, SupplierType.SECONDARY) as IDAO<T>;
+                return new SupplierDAO(_connectionString) as IDAO<T>;
             }
             else if (typeof(T) == typeof(Manufacturer))
             {
                 return new ManufacturerDAO(_connectionString) as IDAO<T>;
+            }
+            else if (typeof(T) == typeof(Users))
+            {
+                return new ProxyUsersDAO(_connectionString) as IDAO<T>;
+            }
+            else if (typeof(T) == typeof(Roles))
+            {
+                return new RolesDAO(_connectionString) as IDAO<T>;
             }
             else
             {

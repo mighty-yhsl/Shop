@@ -135,7 +135,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Виробник з Id {id} не був знайдений або не був видалений.\n");
+                    Notify($"\n Виробник з Id {id} не був знайдений або не був видалений.\n");
                 }
             }
             catch (Exception ex)
@@ -168,7 +168,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Виробник з ім'ям {manufacturer.Name} не був доданий.\n");
+                    Notify($"\n Виробник з ім'ям {manufacturer.Name} не був доданий.\n");
                 }
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Виробник з Id {manufacturer.Id} не був знайдений або не був оновлений.\n");
+                    Notify($"\n Виробник з Id {manufacturer.Id} не був знайдений або не був оновлений.\n");
                 }
             }
             catch (Exception ex)
@@ -248,6 +248,11 @@ namespace Shop
             {
                 _connection.Close();
             }
+        }
+
+        public Manufacturer GetByLogin(string login)
+        {
+            throw new NotImplementedException();
         }
     }
 }

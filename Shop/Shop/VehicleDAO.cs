@@ -163,7 +163,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Транспорт з Id {id} не був знайдений або не був видалений.\n");
+                    Notify($"\n Транспорт з Id {id} не був знайдений або не був видалений.\n");
                 }
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine("\n Транспорт не був доданий.\n");
+                    Notify("\n Транспорт не був доданий.\n");
                 }
             }
             catch (Exception ex)
@@ -237,7 +237,7 @@ namespace Shop
                 }
                 else
                 {
-                    Console.WriteLine($"\n Транспорт з Id {vehicle.Id} не був знайдений або не був оновлений.\n");
+                    Notify($"\n Транспорт з Id {vehicle.Id} не був знайдений або не був оновлений.\n");
                 }
             }
             catch (Exception ex)
@@ -297,6 +297,11 @@ namespace Shop
             {
                 _connection.Close();
             }
+        }
+
+        public Vehicle GetByLogin(string login)
+        {
+            throw new NotImplementedException();
         }
     }
 }
